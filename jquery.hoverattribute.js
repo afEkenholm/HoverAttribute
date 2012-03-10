@@ -1,12 +1,21 @@
 /**
-	hoverAttribute v 1.0
-	
-	@author: Alexander Wallin (http://www.afekenholm.se)
-*/
-
-var timeStart = new Date().getTime();
-var checkTime = false;
-
+ * HoverAttribute jQuery plugin v1.0.5
+ * by Alexander Wallin (http://www.afekenholm.se).
+ * 
+ * parseUri() method by Steven Levithan (http://blog.stevenlevithan.com/).
+ * 
+ * This plugin allows you to make (link-)elements more dynamic by making an attribute
+ * of that element show up on hovering. This is mainly intended for <a> tags residing
+ * within full-width elements, such as headings or list entries.
+ * 
+ * For comments, discussion, propsals and/or development; please visit
+ * http://www.afekenholm.se/hoverattribute-jquery-plugin or send a mail to
+ * contact@afekenholm.se.
+ * 
+ * @author: Alexander Wallin (http://www.afekenholm.se)
+ * @version: 1.0.5
+ * @url: http://www.afekenholm.se/hoverattribute-jquery-plugin
+ */
 (function($){
 	
 	// var getHrefSpan = function(class)
@@ -19,69 +28,73 @@ var checkTime = false;
 		base.options = $.extend({}, $.hoverAttribute.defaults, options);
 		
 		// Cache elements
-		var $a = $(el),
-			$aParent = $a.parent(),
-			href = $a.attr(base.options.hoverAttribute),
-			title = $a.html(),
-			initWidth = $a.width();
+		base.$el = $(el);
+		base.el = el; // Not in use a.t.m.
+		
+		// Store initial variables in the jQuery object.
+		base.$el.$parent = base.$el.parent(); // Not in use a.t.m.
+		base.$el.initWidth = base.$el.width();
+		base.$el.initHeight = base.$el.height();
+		
+		// Get the content of the element and the attribute
+		var	elText = base.$el.html(), 
+			attrValue = base.$el.attr(base.options.attribute);
 		
 		base.init = function(){
 			
-			base.buildNiceHref();
+			if (base.options.attribute == "href")
+				base.buildNiceHref();
 			base.buildContent();
 			base.setupHovering();
 			
-			if (checkTime) alert(new Date().getTime() - timeStart + " ms");
-			
 		};
 		
-		// Build a nice href depening on the options
+		// If the href attribute is chosen, 
+		// build a nice href depening on the options
 		base.buildNiceHref = function(){
 			
-			var hrefParts = parseUri(href);
-			
 			// Remove protocol
-			if (base.options.removeProtocol) {
-				href = href.replace("http://", "");
-			}
+			if (base.options.removeProtocol) attrValue = attrValue.replace("http://", "");
 			
 			// Remove www
-			if (base.options.removeWWW) {
-				href = href.replace("www.", "");
-			}
+			if (base.options.removeWWW) attrValue = attrValue.replace("www.", "");
 			
 			// Shorten link
 			if (base.options.wrapLink != "none") {
 				
-				wrapLength = base.options.wrapLength;
+				var doWrapping = true,
+					wrapLength = base.options.wrapLength; // Alias
 				
-				if (typeof(wrapLength) == "string" 
-						|| href.length > base.options.wrapLength + 3) {
-							
-					var wrapWhere = base.options.wrapLink;
-					if (typeof(wrapLength) == "string") {
-						wrapLength = title.length - 3;
-					}
+				if (wrapLength == "auto")
+					wrapLength = elText.length - 3; // Same num of chars, minus "..."
+				else if (wrapLength == "none" || wrapLength <= 0)
+					doWrapping = false; // No wrapping
+				
+				// If the wrap length is valid and wrapping is neccessary (3 is for "..."),
+				// wrap the attribute text.
+				if (doWrapping && attrValue.length > wrapLength + 3) {
+					
+					// Where the user wants to wrap the attribute
+					var wrapLink = base.options.wrapLink;
 
-					if (wrapWhere == "after") {
-						href = href.substr(0, wrapLength);
-						href += "...";
+					if (wrapLink == "after") {
+						attrValue = attrValue.substr(0, wrapLength) + "...";
 					}
-					else if (wrapWhere == "before") {
-						var numChars = href.length,
+					else if (wrapLink == "before") {
+						var numChars = attrValue.length,
 							wrapStart = numChars - wrapLength;
-						href = "..." + href.substr(wrapStart, href.length - 1);
+						attrValue = "..." + attrValue.substr(wrapStart, numChars - 1);
 					}
-					else if (wrapWhere == "middle") {
-						var hrefStart = href.substr(0, Math.floor(href.length / 2)),
-							hrefEnd = href.substr(hrefStart.length, href.length);
+					else if (wrapLink == "middle") {
+						var hrefStart = attrValue.substr(0, Math.floor(attrValue.length / 2)),
+							hrefEnd = attrValue.substr(hrefStart.length, attrValue.length);
 
 						hrefStart = hrefStart.substr(0, Math.floor(wrapLength / 2));
 						hrefEnd = hrefEnd.substr(
 							hrefEnd.length - Math.ceil(wrapLength / 2), 
 							hrefEnd.length);
 
-						href = hrefStart + "..." + hrefEnd;
+						attrValue = hrefStart + "..." + hrefEnd;
 					}
 				}
 			}
@@ -89,139 +102,137 @@ var checkTime = false;
 			// Hightlight some part of the URL
 			if (base.options.highlightURLPart != "none") {
 				
-				// alert("begin highlight");
-				
-				var part = base.options.highlightURLPart;
+				var hrefParts = parseUri(attrValue),
+					partName = base.options.highlightURLPart;
 				
 				base.highlightPart = function(str){
-					// alert("highlight: " + str);
-					href = href.replace(
+					attrValue = attrValue.replace(
 						str,
-						"<span class='hrefhover-highlight'>" + str + "</span>");
+						"<span class='hoverattribute-highlight'>" + str + "</span>");
 				};
 				
-				// Custom
-				if (part == "lastURIPart") {
+				// Custom highlightning of the last part of the URI
+				if (partName == "lastURIPart") {
 					var path = hrefParts.path,
 						lastPart = path.match(/[a-zA-Z0-9-_]+\/?$/i);
 					base.highlightPart(lastPart);
 				}
-				// From parseUri()
-				else if (hrefParts[part] != undefined && hrefParts[part] != "") {
-					// alert(part " => " + hrefParts[part]);
-					base.highlightPart(hrefParts[part]);
+				// From parseUri() (see below)
+				else if (hrefParts[partName] != undefined && hrefParts[partName] != "") {
+					base.highlightPart(hrefParts[partName]);
+				}
+				else {
+					// Quiet, now.
 				}
 			}
 		}
 		
 		base.buildContent = function(){
-			
-			var aHeight = $a.height() + 'px';
-			if (base.options.cssProperties.isInParagraph) {
-				if (base.options.cssProperties.aHeight != null) {
-					aHeight = base.options.cssProperties.aHeight;
-				}
-				else
-					aHeight = $a.css('font-size');
-			}
-			
+		
 			// Set position to relative
-			$a.css({
-				'display'			: 'inline-block',
+			base.$el.css({
+				'display'			: 'block',
 				'position'			: 'relative',
-				'width'				: $a.width() + 'px',
-				// 'height'			: aHeight + " !important",
-				'height'			: $a.height() + 'px',
+				'width'				: base.$el.initWidth + 'px',// Set the element's width to
+																// a fixed width.
+				'height'	 		: base.$el.height() + 'px',
 				'overflow'			: 'hidden'
 			})
-			.html("<span class='hrefhover-title'>" + title + "</span>")
-			.append("<span class='hrefhover-href'></span>");
+			.html("<span class='hoverattribute-title'>" + elText + "</span>")
+			// The attribute container is initially empty, so that the height is not affected
+			// before applying proper CSS.
+			.append("<span class='hoverattribute-attr'></span>");
 			
-			
-			// alert($a.css('height'));
-			// alert(base.options.cssProperties.aHeight);
+			// Give the element text ("title") the css properties of a showing part.
+			$(".hoverattribute-title", base.$el)
+			//.css($.hoverAttribute.spanCSSDefaults).css($.hoverAttribute.spanCSSVisible);
+			.css($.extend({}, $.hoverAttribute.spanCSSDefaults, $.hoverAttribute.spanCSSVisible));
 
-			// Give the parent a height
-			// $aParent.css("height", $a.height() + "px");
-
-			// Enclose the a content in a span tag
-			$titleSpan = $(".hrefhover-title", $a)
-			.css(cssDefaults).css(cssVisible);
-
-			// Insert href into the html content
-			$hrefSpan = $(".hrefhover-href", $a)
-			.css(cssDefaults).css(cssHidden)
-			.html(href);
+			// Give the attribute text the css properties of a hidden part and insert the
+			// attribute value.
+			$(".hoverattribute-attr", base.$el)
+			.css($.extend({}, $.hoverAttribute.spanCSSDefaults, $.hoverAttribute.spanCSSHidden))
+			.css({'width':'auto', 'height':base.$el.initHeight + 'px'}) // No fixed width to avoid line breaks.
+			.html(attrValue);
 		};
 		
 		base.setupHovering = function(){
 			
+			var animTime = base.options.animationTime * 1000,
+				animEase = base.options.animationEase;
+			
 			// Setup the hover tweenings
-			$a.bind('mouseover', function(){
+			base.$el.bind('mouseover', function(){
 
-				if (base.options.cssProperties.canUseFullWidth) {
-					$(this).css('width', '100%');
+				// If allowed, expand the element to the maximum width so that the attribute 
+				// container (which is probably a description or a URL, and therefore probably
+				// also longer/wider) will be fully visible.
+				if (base.options.cssSettings.canExpandToFullWidth) {
+					$(this).css('width', base.$el.$parent.width() + 'px');
 				}
-				else {
-					$(this).css('width', base.options.cssProperties.expandATo);
-				}
 
-				$(".hrefhover-title", this)
-				.stop().animate(cssHidden, 300, "swing");
+				// Hide default text
+				$(".hoverattribute-title", this)
+				.stop().animate($.hoverAttribute.spanCSSHidden, animTime, animEase);
 
-				$(".hrefhover-href", this)
-				.stop().animate(cssVisible, 300, "swing");
+				// Show attribute text
+				$(".hoverattribute-attr", this)
+				.stop().animate($.hoverAttribute.spanCSSVisible, animTime, animEase);
 				
 			})
 			.bind('mouseout', function(){
 
-				var $this_a = $(this);
+				var $thisEl = $(this);
+				
+				// Show default text
+				$(".hoverattribute-title", this)
+				.stop().animate($.hoverAttribute.spanCSSVisible, animTime, animEase);
 
-				$(".hrefhover-title", this)
-				.stop().animate(cssVisible, 300, "swing");
-
-				$(".hrefhover-href", this)
-				.stop().animate(cssHidden, 300, "swing", function(){
-					$this_a.css('width', initWidth + 'px');
+				// Hide attribute text
+				$(".hoverattribute-attr", this)
+				.stop().animate($.hoverAttribute.spanCSSHidden, animTime, animEase, function(){
+					
+					// When the attribute text is hidden, set the element to its initial width.
+					// We don't want the element to be hoverable at the full parent width.
+					$thisEl.css('width', base.$el.initWidth + 'px');
 				});
 			});
 			
 		};
 		
+		// And the Lord said:
 		base.init();
 		
 	};
 	
 	$.hoverAttribute.defaults = {
-		hoverAttribute: "href",
+		attribute: "href",
+		animationTime: 0.3,
+		animationEase: "swing", // "linear"
 		removeProtocol: false,
 		removeWWW: false,
 		wrapLink: "after", // "before", "middle", "none"
-		wrapLength: 60, // "inherit"
+		wrapLength: 60, // "auto", "none"
 		highlightURLPart: "domain", // "path", "query", "lastURIPart", "none"
-		cssProperties: {
-			canUseFullWidth: true,
-			expandATo: 'auto',
-			isInParagraph: false,
-			aHeight: null
+		cssSettings: {
+			canExpandToFullWidth: true
 		}
 	};
 	
-	// $.hoverAttribute.cssDefaults = {
-	var cssDefaults = {
-		'display'		: 'inline-block',
+	$.hoverAttribute.spanCSSDefaults = {
+		'display'		: 'block',
 		'position'		: 'absolute',
-		'top'			: '0'
+		'top'			: '0',
+		'overflow'		: 'hidden',
+		'width'			: 'auto'
 	};
 	
-	// $.hoverAttribute.cssVisible = {
-	var cssVisible = {
+	$.hoverAttribute.spanCSSVisible = {
 		'left'			: '0',
 		'opacity'		: '1'
 	};
 	
-	// $.hoverAttribute.cssHidden = {
-	var cssHidden = {
+	$.hoverAttribute.spanCSSHidden = {
 		'left'			: '-10px',
 		'opacity'		: '0'
 	};
@@ -234,7 +245,7 @@ var checkTime = false;
 	
 })(jQuery);
 
-/* parseUri JS v0.1, by Steven Levithan (http://badassery.blogspot.com)
+/* parseUri JS v0.1, by Steven Levithan (http://blog.stevenlevithan.com/)
 Splits any well-formed URI into the following parts (all are optional):
 ----------------------
 • source (since the exec() method returns backreference 0 [i.e., the entire match] as key 0, we might as well use it)

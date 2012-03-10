@@ -1,21 +1,31 @@
-a { 
+a {
 	color: #333;
 	text-decoration:none; 
 }
 
-h1, h2, h3 {
-	font-family: Helvetica, Arial;
+h1 a {
+	background: #ddd;
 }
 
-.hrevhover-title {
+h1, h2, h3 {
+	font-family: "Trebuchet MS", Helvetica, Arial;
+}
+
+h3 .hoverattribute-attr {
+	font-family: Monospace;
+	font-size:18px;
+}
+
+.hoverattribute-title {
 	
 }
 
-.hrefhover-href {
+.hoverattribute-attr {
 	color: #999;
+	font-weight: normal;
 	letter-spacing: -1.5px;
 }
 
-.hrefhover-highlight {
+.hoverattribute-highlight {
 	color: #333;
 }

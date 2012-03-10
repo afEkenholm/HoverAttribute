@@ -7,11 +7,11 @@
 
 		<title>HoverAttribute demo</title>
 		
-		<link rel="stylesheet" href="hoverattribute.css" type="text/css" media="screen" />
+		<link rel="stylesheet" href="hoverattribute.css" type="text/css" media="screen" />	
 	</head>
 
 	<body>
-		<div style="width:800px;">
+		<div style="width:700px;">
 			<h1><a href="http://www.facebook.com/alwallin">Alexander Wallin on Facebook</a></h1>
 			
 			<h2><a href="http://www.afekenholm.se/" rel="The rel-attribute">Some link</a></h2>
@@ -19,19 +19,19 @@
 			<h3><a href="http://www.ettklickforskogen.se/index.php?page=shop.product_details&amp;flypage=shop.flypage&amp;product_id=6&amp;category_id=2&amp;manufacturer_id=0&amp;option=com_virtuemart&amp;Itemid=30&amp;vmcchk=1&amp;Itemid=30">Buy a birch</a></h3>
 		</div>
 
-
 		<script type="text/javascript" 
 			src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-		<script type="text/javascript" 	src="jquery.hoverattribute.js"></script>
+		<script type="text/javascript" 	src="jquery.hoverattribute.min.js"></script>
 		<script type="text/javascript">
-		$(document).ready(function(){
+		$(function(){
 			$("h1 a").hoverAttribute({
 				highlightURLPart: "lastURIPart"
 			});
 			$("h2 a").hoverAttribute({
-				hoverAttribute: "rel"
+				attribute: "rel"
 			});
 			$("h3 a").hoverAttribute({
+				animationTime: 0.1,
 				wrapLength: 55,
 				wrapLink: "middle",
 				removeProtocol: true
