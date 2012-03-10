@@ -1,0 +1,21 @@
+a { 
+	color: #333;
+	text-decoration:none; 
+}
+
+h1, h2, h3 {
+	font-family: Helvetica, Arial;
+}
+
+.hrevhover-title {
+	
+}
+
+.hrefhover-href {
+	color: #999;
+	letter-spacing: -1.5px;
+}
+
+.hrefhover-highlight {
+	color: #333;
+}
