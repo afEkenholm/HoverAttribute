@@ -1,5 +1,5 @@
 /**
- * HoverAttribute jQuery plugin v1.0.6
+ * HoverAttribute jQuery plugin v1.0.7
  * by Alexander Wallin (http://www.afekenholm.se).
  *
  * Licensed under MIT (http://www.afekenholm.se/license.txt)
@@ -15,7 +15,7 @@
  * contact@afekenholm.se.
  * 
  * @author: Alexander Wallin (http://www.afekenholm.se)
- * @version: 1.0.6
+ * @version: 1.0.7
  * @url: http://www.afekenholm.se/hoverattribute-jquery-plugin
  */
 (function($){
@@ -61,7 +61,8 @@
 				'position'		: 'absolute',
 				'top'			: '0',
 				'overflow'		: 'hidden',
-				'width'			: 'auto'
+				'width'			: 'auto',
+				'white-space' 	: 'nowrap'
 			};
 
 			base.spanCSSVisible = {
@@ -96,7 +97,7 @@
 			
 			// Remove protocol
 			if (base.options.removeProtocol) 
-				attrValue = attrValue.replace(/^(http|https|ftp):\/\//, "");
+				attrValue = attrValue.replace(/^(mailto:|(http|https|ftp):\/\/)/, "");
 			
 			// Remove www
 			if (base.options.removeWWW) attrValue = attrValue.replace("www.", "");
@@ -193,8 +194,8 @@
 			// attribute value.
 			$(".hoverattribute-attr", base.$el)
 			.css($.extend({}, base.spanCSSDefaults, base.spanCSSHidden))
-			// No fixed width or white-space to avoid line breaks.
-			.css({'white-space':'nowrap', 'width':'auto', 'height':base.$el.initHeight + 'px'})
+			// No fixed width to avoid line breaks.
+			.css({'width':'auto', 'height':base.$el.initHeight + 'px'})
 			.html(attrValue);
 		};
 		
