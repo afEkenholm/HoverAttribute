@@ -1,0 +1,104 @@
+# HoverAttribute
+
+HoverAttribute is a jQuery plugin that allows you to make (link-)elements more dynamic by making an attribute of that element show up on hovering. This is foremost intended for <a> tags residing within full-width elements, such as headings or list entries. Amongst several options, it is possible to choose any attribute (href by default, see Usage) of a given tag. The functionality is implemented like:
+
+$("h2 a").hoverAttribute();
+
+HoverAttribute includes and uses the function parseUri() by Steven Levithan. It is licensed under the MIT License.
+
+URL: http://www.afekenholm.se/hoverattribute-jquery-plugin
+
+## Usage
+
+The HoverAttribute plugin takes some options as follows:
+
+$(".selector").hoverAttribute({
+    attribute: "href",
+    animationTime: 0.3,
+    animationEase: "linear",
+    tweenInFrom: "left",
+    parseAsURL: null,
+    removeProtocol: true,
+    removeWWW: false,
+    wrapLink: "after",
+    wrapLength: 60,
+    highlightURLPart: "host",
+    cssSettings: {
+        canExpandFullWidth: true
+    }
+});
+
+### Options
+
+**attribute**
+A string that sets which attribute to show on hovering. Any existing attribute may be used. The default is set to "href".
+
+**animationTime**
+Time time in seconds that the animation on hover should last. Default is set to 0.3.
+
+**animationEase**
+The jQuery easing function that the animation will use.
+
+"swing" (Default)
+"linear"
+
+**tweenInFrom**
+The side from which the attribute will be animated into position.
+
+"left" (Default)
+"top"
+"right"
+"bottom"
+
+**parseAsURL**
+If set to true, it forces the chosen attribute to be treated as a URL. If set to false, no parsing of the URL will be done.
+
+null (Default)
+true
+false
+
+**removeProtocol**
+Whether to remove "http(s)://", "ftp://" or "mailto:" in the selected attribute, if this is a URL.
+
+false (Default)
+true
+
+**removeWWW**
+Whether to include "www." in the selected attribute if this is a URL.
+
+false (Default)
+true
+
+**wrapLink**
+A string indicating if and where to wrap the attribute's text.
+
+"after" (Default)
+"none"
+"middle"
+"before"
+
+**wrapLength**
+An integer or string that sets the maximum number of characters (before adding "...") in the attribute content. If an int is given, that is the number of maximum characters. If set to "auto" the number of characters will be set to the actual length of the attribute value minus 3 (the length of "..."), else if set to "none" or 0 no maximum is set and used. Default is set to 60.
+
+60 (Default)
+Any positive integer
+"auto"
+"none"
+
+**highlightURLPart**
+A string that instructs which part of the URL (if the string is a URL) to highlight.
+
+"host" or "domain" (Default)
+"path"
+"query"
+"lastURIPart"
+"none"
+
+**cssSettings**
+A set of properties to correct and/or control the appearance of the chosen element.
+
+**cssSettings.canExpandToFullWidth**
+Sets whether or not the chosen element can be expanded to 100% width within it's parent element when hovered.
+
+true (Default)
+false
