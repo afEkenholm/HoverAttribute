@@ -1,6 +1,8 @@
 /**
- * HoverAttribute jQuery plugin v1.0.5
+ * HoverAttribute jQuery plugin v1.0.6
  * by Alexander Wallin (http://www.afekenholm.se).
+ *
+ * Licensed under MIT (http://www.afekenholm.se/license.txt)
  * 
  * parseUri() method by Steven Levithan (http://blog.stevenlevithan.com/).
  * 
@@ -13,12 +15,11 @@
  * contact@afekenholm.se.
  * 
  * @author: Alexander Wallin (http://www.afekenholm.se)
- * @version: 1.0.5
+ * @version: 1.0.6
  * @url: http://www.afekenholm.se/hoverattribute-jquery-plugin
  */
 (function($){
 	
-	// var getHrefSpan = function(class)
 	$.hoverAttribute = function(el, options){
 		
 		// Escape conflicts
@@ -26,6 +27,9 @@
 		
 		// Set options
 		base.options = $.extend({}, $.hoverAttribute.defaults, options);
+		
+		// Compability
+		if (base.options.highlightURLPart == "domain") base.options.highlightURLPart = "host";
 		
 		// Cache elements
 		base.$el = $(el);
@@ -42,19 +46,57 @@
 		
 		base.init = function(){
 			
-			if (base.options.attribute == "href")
+			base.setupCSS();
+			if ((base.options.attribute == "href" || base.options.parseAsURL == true)
+					&& base.options.parseAsURL != false)
 				base.buildNiceHref();
 			base.buildContent();
 			base.setupHovering();
 			
 		};
 		
+		base.setupCSS = function() {
+			base.spanCSSDefaults = {
+				'display'		: 'block',
+				'position'		: 'absolute',
+				'top'			: '0',
+				'overflow'		: 'hidden',
+				'width'			: 'auto'
+			};
+
+			base.spanCSSVisible = {
+				'opacity'		: '1'
+			};
+
+			base.spanCSSHidden = {
+				'opacity'		: '0'
+			};
+			
+			var twif = base.options.tweenInFrom,
+				valHidden = '0';
+			
+			if (twif == 'left')			valHidden = '-10px';
+			else if (twif == 'top') 	valHidden = '-' + base.$el.initHeight + 'px';
+			else if (twif == 'right')	valHidden = '10px';
+			else if (twif == 'bottom') 	valHidden = base.$el.initHeight + 'px';
+			
+			if (twif == 'left' || twif == 'right') {
+				base.spanCSSVisible.left = '0';
+				base.spanCSSHidden.left = valHidden;
+			}
+			else if (twif == 'top' || twif == 'bottom') {
+				base.spanCSSVisible.top = '0';
+				base.spanCSSHidden.top = valHidden;
+			}
+		}
+		
 		// If the href attribute is chosen, 
 		// build a nice href depening on the options
 		base.buildNiceHref = function(){
 			
 			// Remove protocol
-			if (base.options.removeProtocol) attrValue = attrValue.replace("http://", "");
+			if (base.options.removeProtocol) 
+				attrValue = attrValue.replace(/^(http|https|ftp):\/\//, "");
 			
 			// Remove www
 			if (base.options.removeWWW) attrValue = attrValue.replace("www.", "");
@@ -102,7 +144,7 @@
 			// Hightlight some part of the URL
 			if (base.options.highlightURLPart != "none") {
 				
-				var hrefParts = parseUri(attrValue),
+				var urlParts = parseUri(attrValue),
 					partName = base.options.highlightURLPart;
 				
 				base.highlightPart = function(str){
@@ -113,13 +155,13 @@
 				
 				// Custom highlightning of the last part of the URI
 				if (partName == "lastURIPart") {
-					var path = hrefParts.path,
+					var path = urlParts.path,
 						lastPart = path.match(/[a-zA-Z0-9-_]+\/?$/i);
 					base.highlightPart(lastPart);
 				}
 				// From parseUri() (see below)
-				else if (hrefParts[partName] != undefined && hrefParts[partName] != "") {
-					base.highlightPart(hrefParts[partName]);
+				else if (urlParts[partName] != undefined && urlParts[partName] != "") {
+					base.highlightPart(urlParts[partName]);
 				}
 				else {
 					// Quiet, now.
@@ -145,14 +187,14 @@
 			
 			// Give the element text ("title") the css properties of a showing part.
 			$(".hoverattribute-title", base.$el)
-			//.css($.hoverAttribute.spanCSSDefaults).css($.hoverAttribute.spanCSSVisible);
-			.css($.extend({}, $.hoverAttribute.spanCSSDefaults, $.hoverAttribute.spanCSSVisible));
+			.css($.extend({}, base.spanCSSDefaults, base.spanCSSVisible));
 
 			// Give the attribute text the css properties of a hidden part and insert the
 			// attribute value.
 			$(".hoverattribute-attr", base.$el)
-			.css($.extend({}, $.hoverAttribute.spanCSSDefaults, $.hoverAttribute.spanCSSHidden))
-			.css({'width':'auto', 'height':base.$el.initHeight + 'px'}) // No fixed width to avoid line breaks.
+			.css($.extend({}, base.spanCSSDefaults, base.spanCSSHidden))
+			// No fixed width or white-space to avoid line breaks.
+			.css({'white-space':'nowrap', 'width':'auto', 'height':base.$el.initHeight + 'px'})
 			.html(attrValue);
 		};
 		
@@ -173,11 +215,11 @@
 
 				// Hide default text
 				$(".hoverattribute-title", this)
-				.stop().animate($.hoverAttribute.spanCSSHidden, animTime, animEase);
+				.stop().animate(base.spanCSSHidden, animTime, animEase);
 
 				// Show attribute text
 				$(".hoverattribute-attr", this)
-				.stop().animate($.hoverAttribute.spanCSSVisible, animTime, animEase);
+				.stop().animate(base.spanCSSVisible, animTime, animEase);
 				
 			})
 			.bind('mouseout', function(){
@@ -186,11 +228,11 @@
 				
 				// Show default text
 				$(".hoverattribute-title", this)
-				.stop().animate($.hoverAttribute.spanCSSVisible, animTime, animEase);
+				.stop().animate(base.spanCSSVisible, animTime, animEase);
 
 				// Hide attribute text
 				$(".hoverattribute-attr", this)
-				.stop().animate($.hoverAttribute.spanCSSHidden, animTime, animEase, function(){
+				.stop().animate(base.spanCSSHidden, animTime, animEase, function(){
 					
 					// When the attribute text is hidden, set the element to its initial width.
 					// We don't want the element to be hoverable at the full parent width.
@@ -209,32 +251,16 @@
 		attribute: "href",
 		animationTime: 0.3,
 		animationEase: "swing", // "linear"
+		tweenInFrom: "left", // "top", "right", "bottom"
+		parseAsURL: null,
 		removeProtocol: false,
 		removeWWW: false,
 		wrapLink: "after", // "before", "middle", "none"
 		wrapLength: 60, // "auto", "none"
-		highlightURLPart: "domain", // "path", "query", "lastURIPart", "none"
+		highlightURLPart: "host", // "path", "query", "lastURIPart", "none"
 		cssSettings: {
 			canExpandToFullWidth: true
 		}
-	};
-	
-	$.hoverAttribute.spanCSSDefaults = {
-		'display'		: 'block',
-		'position'		: 'absolute',
-		'top'			: '0',
-		'overflow'		: 'hidden',
-		'width'			: 'auto'
-	};
-	
-	$.hoverAttribute.spanCSSVisible = {
-		'left'			: '0',
-		'opacity'		: '1'
-	};
-	
-	$.hoverAttribute.spanCSSHidden = {
-		'left'			: '-10px',
-		'opacity'		: '0'
 	};
 	
 	$.fn.hoverAttribute = function(options){
@@ -245,35 +271,34 @@
 	
 })(jQuery);
 
-/* parseUri JS v0.1, by Steven Levithan (http://blog.stevenlevithan.com/)
-Splits any well-formed URI into the following parts (all are optional):
-----------------------
-• source (since the exec() method returns backreference 0 [i.e., the entire match] as key 0, we might as well use it)
-• protocol (scheme)
-• authority (includes both the domain and port)
-    • domain (part of the authority; can be an IP address)
-    • port (part of the authority)
-• path (includes both the directory path and filename)
-    • directoryPath (part of the path; supports directories with periods, and without a trailing backslash)
-    • fileName (part of the path)
-• query (does not include the leading question mark)
-• anchor (fragment)
-*/
-function parseUri(sourceUri){
-	
-    var uriPartNames = ["source","protocol","authority","domain","port","path","directoryPath","fileName","query","anchor"];
-    var uriParts = new RegExp("^(?:([^:/?#.]+):)?(?://)?(([^:/?#]*)(?::(\\d*))?)?((/(?:[^?#](?![^?#/]*\\.[^?#/.]+(?:[\\?#]|$)))*/?)?([^?#/]*))?(?:\\?([^#]*))?(?:#(.*))?").exec(sourceUri);
-    var uri = {};
-    
-    for(var i = 0; i < 10; i++){
-        uri[uriPartNames[i]] = (uriParts[i] ? uriParts[i] : "");
-    }
-    
-    // Always end directoryPath with a trailing backslash if a path was present in the source URI
-    // Note that a trailing backslash is NOT automatically inserted within or appended to the "path" key
-    if(uri.directoryPath.length > 0){
-        uri.directoryPath = uri.directoryPath.replace(/\/?$/, "/");
-    }
+// parseUri 1.2.2
+// (c) Steven Levithan <stevenlevithan.com>
+// MIT License
+function parseUri (str) {
+	var	o   = parseUri.options,
+		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+		uri = {},
+		i   = 14;
 
-    return uri;
-}
+	while (i--) uri[o.key[i]] = m[i] || "";
+
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) uri[o.q.name][$1] = $2;
+	});
+
+	return uri;
+};
+
+parseUri.options = {
+	strictMode: false,
+	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+	q:   {
+		name:   "queryKey",
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
+};

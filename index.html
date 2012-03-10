@@ -25,10 +25,12 @@
 		<script type="text/javascript">
 		$(function(){
 			$("h1 a").hoverAttribute({
-				highlightURLPart: "lastURIPart"
+				removeWWW: true,
+				highlightURLPart: "domain"//"lastURIPart"
 			});
 			$("h2 a").hoverAttribute({
-				attribute: "rel"
+				attribute: "rel",
+				tweenInFrom: "bottom"
 			});
 			$("h3 a").hoverAttribute({
 				animationTime: 0.1,
